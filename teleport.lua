@@ -1,99 +1,57 @@
---// === PRIVATE SERVER TELEPORT SCRIPT ===
---// Buat: nanzzxdev (support Delta, Codex, Arceus X, dll)
---// Fitur:
---// ✅ Auto ambil game.PlaceId (tidak perlu tulis manual)
---// ✅ Fullscreen loading keren
---// ✅ Teleport otomatis ke private server
-
+-- Full Auto Teleport to Private Server
 local TeleportService = game:GetService("TeleportService")
 local Players = game:GetService("Players")
+local player = Players.LocalPlayer
 local TweenService = game:GetService("TweenService")
 
-local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
+-- ganti sesuai private server kamu
+local PRIVATE_SERVER_CODE = "a684e76e90f6664f876d02d9cd2191a6"
+local PLACE_ID = game.PlaceId -- otomatis ambil game yang sama
 
--- Ganti ini dengan KODE PRIVATE SERVER kamu (dari link share Roblox)
-local PRIVATE_CODE = "a684e76e90f6664f876d02d9cd2191a6"
+-- buat loading screen
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+local Frame = Instance.new("Frame", ScreenGui)
+Frame.Size = UDim2.new(1, 0, 1, 0)
+Frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 
--- Ambil otomatis PlaceId game saat ini
-local PLACE_ID = game.PlaceId
+local TextLabel = Instance.new("TextLabel", Frame)
+TextLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+TextLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
+TextLabel.Text = "Menghubungkan ke Private Server..."
+TextLabel.Font = Enum.Font.GothamBold
+TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel.TextScaled = true
+TextLabel.BackgroundTransparency = 1
 
--- Buat ScreenGui full screen
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "TeleportLoadingGui"
-screenGui.IgnoreGuiInset = true
-screenGui.ResetOnSpawn = false
-screenGui.Parent = playerGui
+local BarFrame = Instance.new("Frame", Frame)
+BarFrame.AnchorPoint = Vector2.new(0.5, 0)
+BarFrame.Position = UDim2.new(0.5, 0, 0.6, 0)
+BarFrame.Size = UDim2.new(0.5, 0, 0.03, 0)
+BarFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+BarFrame.BorderSizePixel = 0
 
-local bg = Instance.new("Frame")
-bg.Size = UDim2.new(1, 0, 1, 0)
-bg.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-bg.BorderSizePixel = 0
-bg.Parent = screenGui
+local Bar = Instance.new("Frame", BarFrame)
+Bar.Size = UDim2.new(0, 0, 1, 0)
+Bar.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+Bar.BorderSizePixel = 0
 
--- Teks utama
-local title = Instance.new("TextLabel")
-title.Text = "🔄 Menghubungkan ke Private Server..."
-title.Font = Enum.Font.GothamBold
-title.TextScaled = true
-title.Size = UDim2.new(1, 0, 0.2, 0)
-title.Position = UDim2.new(0, 0, 0.4, 0)
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.BackgroundTransparency = 1
-title.Parent = bg
-
--- Progress bar background
-local progressBg = Instance.new("Frame")
-progressBg.Size = UDim2.new(0.6, 0, 0.03, 0)
-progressBg.Position = UDim2.new(0.2, 0, 0.55, 0)
-progressBg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-progressBg.BorderSizePixel = 0
-progressBg.Parent = bg
-
--- Progress bar isi
-local progressBar = Instance.new("Frame")
-progressBar.Size = UDim2.new(0, 0, 1, 0)
-progressBar.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-progressBar.BorderSizePixel = 0
-progressBar.Parent = progressBg
-
--- Persentase teks
-local percent = Instance.new("TextLabel")
-percent.Text = "0%"
-percent.Font = Enum.Font.Gotham
-percent.TextScaled = true
-percent.Size = UDim2.new(1, 0, 1, 0)
-percent.TextColor3 = Color3.fromRGB(255, 255, 255)
-percent.BackgroundTransparency = 1
-percent.Parent = progressBg
-
--- Animasi progress bar
-local function animateProgress(duration, callback)
-	local tween = TweenService:Create(progressBar, TweenInfo.new(duration, Enum.EasingStyle.Linear), {Size = UDim2.new(1, 0, 1, 0)})
-	tween:Play()
-	
+-- animasi progress
+task.spawn(function()
 	for i = 1, 100 do
-		percent.Text = i .. "%"
-		wait(duration / 100)
+		TweenService:Create(Bar, TweenInfo.new(0.05), {Size = UDim2.new(i/100, 0, 1, 0)}):Play()
+		TextLabel.Text = "Menghubungkan ke Private Server... " .. i .. "%"
+		task.wait(0.05)
 	end
-	
-	tween.Completed:Connect(function()
-		if callback then callback() end
-	end)
-end
+end)
 
--- Jalankan animasi loading, lalu teleport
-animateProgress(3, function()
-	title.Text = "✅ Terhubung! Memasuki private server..."
-	wait(0.5)
-	
-	-- Teleport ke private server
+-- coba teleport
+task.delay(5, function()
 	local success, err = pcall(function()
-		TeleportService:TeleportToPrivateServer(PLACE_ID, PRIVATE_CODE, {player})
+		TeleportService:TeleportToPrivateServer(PLACE_ID, PRIVATE_SERVER_CODE, {player})
 	end)
-
+	
 	if not success then
-		title.Text = "❌ Gagal teleport: " .. tostring(err)
-		progressBar.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+		TextLabel.Text = "Gagal menghubungkan: " .. tostring(err)
+		Bar.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 	end
 end)
